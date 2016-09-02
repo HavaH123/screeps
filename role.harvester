@@ -1,11 +1,37 @@
 var roleHarvester = {
 
     /** @param {Creep} creep **/
+	getNewSource: function(creep){
+		var sources = creep.room.find(FIND_SOURCES);
+		for( var i=0; i<sources.length; i++) {
+			var moveResp = creep.moveTo(sources[i]);
+			if(moveResp == -2 || moveResp == -7) {
+				continue;
+			}
+			else {
+				creep.memory.harvestingFrom = sources[i].id;
+				console.log("Harvesting from : "+JSON.stringify(creep.memory.harvestingFrom));
+				break;
+			}
+		}
+		if(!creep.memory.harvestingFrom) {
+			creep.suicide();
+		}
+	},
+	
     run: function(creep) {
+		var me=this;
+		if(!creep.memory.harvestingFrom) {
+			me.getNewSource(creep);
+		}
+		
         if(creep.carry.energy < creep.carryCapacity) {
-            var sources = creep.room.find(FIND_SOURCES);
-            if(creep.harvest(sources[0]) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(sources[0]);
+			console.log("Harvesting from : "+JSON.stringify(creep.memory.harvestingFrom));
+            if(creep.harvest(Game.getObjectById(creep.memory.harvestingFrom)) == ERR_NOT_IN_RANGE) {
+				var moveResp = creep.moveTo(Game.getObjectById(creep.memory.harvestingFrom))
+                if(moveResp == -2 || moveResp == -7) {
+					me.getNewSource(creep);
+				}
             }
         }
         else {
